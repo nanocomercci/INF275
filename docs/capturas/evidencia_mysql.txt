@@ -1,0 +1,32 @@
++----------------+--------------+---------------+-------------------+
+| gtin           | numero_serie | estado_actual | ubicacion         |
++----------------+--------------+---------------+-------------------+
+| 07791234000012 | SN-DEMO-0001 | DISPONIBLE    | Depósito central  |
+| 07791234000029 | SN-ST-0101   | IMPLANTADA    | NULL              |
+| 07791234000012 | SN-MP-0102   | DISPONIBLE    | Depósito central  |
+| 07791234000036 | SN-PC-0103   | DEVUELTA      | NULL              |
+| 07791234000029 | SN-ST-0104   | DISPONIBLE    | Depósito central  |
+| 07791234000036 | SN-PC-0105   | DISPONIBLE    | Depósito central  |
++----------------+--------------+---------------+-------------------+
++-----------+---------------------+--------------+---------------------+--------------+
+| id_evento | codigo              | numero_serie | fecha_hora          | estado_envio |
++-----------+---------------------+--------------+---------------------+--------------+
+|         1 | RECEPCION           | SN-DEMO-0001 | 2026-10-18 16:41:58 | ACEPTADO     |
+|         2 | RECEPCION           | SN-ST-0101   | 2026-10-18 16:42:02 | ACEPTADO     |
+|         3 | RECEPCION           | SN-MP-0102   | 2026-10-18 16:42:03 | ACEPTADO     |
+|         4 | RECEPCION           | SN-PC-0103   | 2026-10-18 16:42:04 | ACEPTADO     |
+|         5 | RECEPCION           | SN-ST-0104   | 2026-10-18 16:42:05 | ACEPTADO     |
+|         6 | RECEPCION           | SN-PC-0105   | 2026-10-18 16:42:05 | ACEPTADO     |
+|         7 | TRASLADO            | SN-ST-0101   | 2026-10-18 16:42:10 | ACEPTADO     |
+|         8 | CUARENTENA          | SN-MP-0102   | 2026-10-18 16:42:12 | ACEPTADO     |
+|         9 | CUARENTENA          | SN-PC-0103   | 2026-10-18 16:42:14 | ACEPTADO     |
+|        10 | IMPLANTACION        | SN-ST-0101   | 2026-10-18 16:42:16 | ACEPTADO     |
+|        11 | LEVANTAR_CUARENTENA | SN-MP-0102   | 2026-10-18 16:42:18 | ACEPTADO     |
+|        12 | DEVOLUCION          | SN-PC-0103   | 2026-10-18 16:42:19 | ACEPTADO     |
++-----------+---------------------+--------------+---------------------+--------------+
++----------+----------+
+| estado   | cantidad |
++----------+----------+
+| ACEPTADA |       12 |
+| ERROR    |       12 |
++----------+----------+

@@ -1,0 +1,42 @@
+@startuml
+title CU-01 Registrar recepción - Diagrama de secuencia de diseño (versión TP3)
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam participantPadding 14
+
+actor "Operador de depósito" as Operador
+boundary "PantallaRecepcion" as Pantalla
+control "ControlRecepcion" as Control
+participant "ValidadorGtin" as Validador
+participant "FuenteDatos" as Fuente
+participant "UnidadProductoDAO" as UnidadDAO
+participant "EventoDAO" as EventoDAO
+control "ServicioIntegracion" as Integracion
+
+Operador -> Pantalla : ingresa GTIN, serie, lote,\nvencimiento, agente y documento
+Pantalla -> Pantalla : leerFecha(texto)
+Pantalla -> Control : registrarRecepcion(datos, usuario)
+Control -> Validador : esValido(gtin)
+Validador --> Control : true
+Control -> Fuente : productos().buscarPorGtin(gtin)
+Control -> UnidadDAO : buscarPorGtinYSerie(gtin, serie)
+UnidadDAO --> Control : Optional.empty()
+Control -> Fuente : enTransaccion(trabajo)
+activate Fuente
+Fuente -> UnidadDAO : guardar(new UnidadProducto(..., DISPONIBLE))
+Fuente -> EventoDAO : guardar(new Evento(RECEPCION, PENDIENTE))
+Fuente --> Control : commit / evento
+deactivate Fuente
+Control -> Integracion : encolar(evento)
+Control --> Pantalla : ResultadoRecepcion
+Pantalla --> Operador : mensaje de confirmación
+
+alt GTIN-serie duplicado
+  UnidadDAO --> Control : unidad existente
+  Control --> Pantalla : throw UnidadDuplicadaException
+  Pantalla --> Operador : informa estado y ubicación actuales
+else datos inválidos
+  Control --> Pantalla : throw DatosInvalidosException(errores)
+  Pantalla --> Operador : lista los campos a corregir
+end
+@enduml

@@ -1,0 +1,24 @@
+@startuml
+title Entorno de red físico de TrazaPM en la Clínica Modelo del Centro
+skinparam shadowing false
+skinparam nodesep 40
+skinparam ranksep 45
+
+cloud "Internet" as internet
+node "Router / Firewall\n(NAT, sin puertos entrantes)" as fw
+node "Switch de distribución\nLAN 192.168.10.0/24 (1 Gbps)" as sw
+node "Servidor de la clínica\nWindows Server · MySQL 8.0\n192.168.10.5 : 3306" as srv
+node "Puesto Depósito\nWindows 10/11 · JRE 21\nTrazaPM (JavaFX)" as pc1
+node "Puesto Farmacia\nWindows 10/11 · JRE 21\nTrazaPM (JavaFX)" as pc2
+node "Puesto Quirófano\nWindows 10/11 · JRE 21\nTrazaPM (JavaFX)" as pc3
+node "SNT-PM / ANMAT\n(servicio web, futuro)" as snt
+
+pc1 -- sw : UTP Cat 6
+pc2 -- sw : UTP Cat 6
+pc3 -- sw : UTP Cat 6
+srv -- sw : UTP Cat 6
+sw -- fw
+fw -- internet
+internet -- snt : HTTPS 443\n(adaptador simulado en el prototipo)
+pc1 ..> srv : JDBC TCP 3306
+@enduml

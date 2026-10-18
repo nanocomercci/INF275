@@ -1,0 +1,49 @@
+@startuml
+title Diagrama de paquetes y capas de TrazaPM (versión TP3)
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+package "com.trazapm.vista (boundary)" as vista {
+  class VentanaPrincipal
+  abstract class PantallaBase
+}
+package "com.trazapm.control (control)" as control {
+  class ControlRecepcion
+  class ServicioTrazabilidad
+  class ServicioIntegracion
+  package "operaciones" {
+    abstract class OperacionTrazabilidad
+  }
+}
+package "com.trazapm.modelo (entity)" as modelo {
+  abstract class EntidadBase
+  abstract class Producto
+  class UnidadProducto
+  class Evento
+}
+package "com.trazapm.dao" as dao {
+  interface FuenteDatos
+  package "jdbc" {
+    class FuenteDatosMySQL
+  }
+  package "memoria" {
+    class FuenteDatosMemoria
+  }
+}
+package "com.trazapm.excepciones" as exc {
+  class TrazabilidadException
+}
+package "com.trazapm.util" as util {
+  class Algoritmos
+  class ValidadorGtin
+}
+class "MySQL (base trazapm)" as db <<database>>
+
+vista ..> control
+control ..> modelo
+control ..> dao
+control ..> util
+control ..> exc
+dao ..> modelo
+FuenteDatosMySQL ..> db : JDBC
+@enduml

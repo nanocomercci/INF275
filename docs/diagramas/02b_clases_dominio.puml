@@ -1,0 +1,112 @@
+@startuml
+title Diagrama de clases de diseño - dominio (versión TP3)
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam nodesep 30
+skinparam ranksep 40
+hide empty members
+
+abstract class EntidadBase <<entity>> {
+  - id: Long
+  + getId(): Long
+  + equals(o): boolean
+}
+abstract class Persona <<entity>> {
+  - nombreCompleto: String
+  + {abstract} getDescripcionRol(): String
+}
+class Usuario <<entity>> {
+  - nombreUsuario: String
+  - rol: Rol
+  - activo: boolean
+  + getDescripcionRol(): String
+}
+class Profesional <<entity>> {
+  - matricula: String
+  - cuit: String
+  - habilitado: boolean
+  + getDescripcionRol(): String
+}
+abstract class Producto <<entity>> {
+  - gtin: String
+  - marca: String
+  - modelo: String
+  - certificadoAnmat: String
+  + {abstract} getTipoProducto(): String
+  + {abstract} getDiasAlertaVencimiento(): int
+  + {abstract} getDetalleTecnico(): String
+}
+class Marcapasos {
+  - camaras: int
+}
+class StentCoronario {
+  - diametroMm: double
+  - liberadorFarmaco: boolean
+}
+class ProtesisCadera {
+  - material: String
+}
+class UnidadProducto <<entity>> {
+  - numeroSerie: String
+  - lote: String
+  - vencimiento: LocalDate
+  - estado: EstadoUnidad
+  - fechaAlta: LocalDateTime
+  + getClave(): String
+}
+class Evento <<entity>> {
+  - tipo: TipoEvento
+  - fechaHora: LocalDateTime
+  - documento: String
+  - motivo: String
+  - estadoEnvio: EstadoEnvio
+  - intentosEnvio: int
+}
+class Ubicacion <<entity>> {
+  - nombre: String
+  - sector: String
+}
+class Agente <<entity>> {
+  - razonSocial: String
+  - cuit: String
+  - glnCufe: String
+}
+enum EstadoUnidad {
+  DISPONIBLE
+  CUARENTENA
+  IMPLANTADA
+  DEVUELTA
+  DESTRUIDA
+  EXTRAVIADA
+}
+enum TipoEvento
+enum Rol
+enum EstadoEnvio
+
+EntidadBase <|-- Persona
+Persona <|-- Usuario
+Persona <|-- Profesional
+EntidadBase <|-- Producto
+Producto <|-- Marcapasos
+Producto <|-- StentCoronario
+Producto <|-- ProtesisCadera
+EntidadBase <|-- UnidadProducto
+EntidadBase <|-- Evento
+EntidadBase <|-- Ubicacion
+EntidadBase <|-- Agente
+Producto "1" -- "0..*" UnidadProducto
+UnidadProducto "0..*" --> "0..1" Ubicacion : ubicación actual
+UnidadProducto --> EstadoUnidad
+UnidadProducto "1" -- "0..*" Evento
+Evento --> TipoEvento
+Evento --> EstadoEnvio
+Evento "0..*" --> "1" Usuario : registrado por
+Evento "0..*" --> "0..1" Profesional
+Evento "0..*" --> "0..1" Agente
+Usuario --> Rol
+note bottom of UnidadProducto
+  Las entidades solo guardan estado.
+  Las reglas (transiciones, vigencia,
+  unicidad) están en la capa de control.
+end note
+@enduml

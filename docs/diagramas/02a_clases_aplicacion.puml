@@ -1,0 +1,101 @@
+@startuml
+title Diagrama de clases de diseño - control y persistencia (versión TP3)
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam nodesep 25
+skinparam ranksep 40
+hide empty members
+
+abstract class PantallaBase <<boundary>> {
+  + {abstract} refrescar(): void
+  + {abstract} getTituloPestana(): String
+}
+class PantallaRecepcion <<boundary>>
+class PantallaMovimientos <<boundary>>
+class PantallaTrazabilidad <<boundary>>
+class PantallaStock <<boundary>>
+class PantallaIntegracion <<boundary>>
+PantallaBase <|-- PantallaRecepcion
+PantallaBase <|-- PantallaMovimientos
+PantallaBase <|-- PantallaTrazabilidad
+PantallaBase <|-- PantallaStock
+PantallaBase <|-- PantallaIntegracion
+
+class ControlRecepcion <<control>> {
+  + registrarRecepcion(datos, usuario): ResultadoRecepcion
+  - validar(datos): Producto
+}
+class ServicioTrazabilidad <<control>> {
+  + registrarMovimiento(op, solicitud): Evento
+  + consultarHistorial(gtin, serie): Historial
+  + proximasAVencer(fecha): List
+  + buscarPorSerie(serie): Optional
+  + estaVigente(unidad, fecha): boolean
+}
+abstract class OperacionTrazabilidad <<control>> {
+  + validar(s): void {final}
+  + crearEvento(s): Evento {final}
+  # {abstract} estadosOrigenPermitidos(): Set
+  + {abstract} estadoResultante(): EstadoUnidad
+  # {abstract} rolesPermitidos(): Set
+  # {abstract} validarEspecifico(s, errores): void
+}
+class OperacionTraslado
+class OperacionCuarentena
+class OperacionLevantarCuarentena
+class OperacionImplantacion
+class OperacionDevolucion
+OperacionTrazabilidad <|-- OperacionTraslado
+OperacionTrazabilidad <|-- OperacionCuarentena
+OperacionTrazabilidad <|-- OperacionLevantarCuarentena
+OperacionTrazabilidad <|-- OperacionImplantacion
+OperacionTrazabilidad <|-- OperacionDevolucion
+
+class ServicioIntegracion <<control>> {
+  - cola: Queue<Evento>
+  + encolar(evento): void
+  + sincronizar(): ResumenSincronizacion
+}
+interface ConectorSnt {
+  + informar(evento): RespuestaSnt
+}
+class ConectorSntSimulado
+ConectorSnt <|.. ConectorSntSimulado
+
+interface FuenteDatos {
+  + productos(): ProductoDAO
+  + unidades(): UnidadProductoDAO
+  + eventos(): EventoDAO
+  + catalogo(): CatalogoDAO
+  + enTransaccion(trabajo): T
+}
+interface UnidadProductoDAO {
+  + buscarPorGtinYSerie(gtin, serie): Optional
+  + guardar(unidad): UnidadProducto
+  + actualizar(unidad): void
+}
+interface EventoDAO {
+  + guardar(evento): Evento
+  + listarPorUnidad(id): List
+  + listarPendientes(): List
+}
+class FuenteDatosMySQL
+class FuenteDatosMemoria
+FuenteDatos <|.. FuenteDatosMySQL
+FuenteDatos <|.. FuenteDatosMemoria
+FuenteDatos ..> UnidadProductoDAO
+FuenteDatos ..> EventoDAO
+
+PantallaRecepcion --> ControlRecepcion
+PantallaMovimientos --> ServicioTrazabilidad
+PantallaTrazabilidad --> ServicioTrazabilidad
+PantallaStock --> ServicioTrazabilidad
+PantallaIntegracion --> ServicioIntegracion
+ControlRecepcion --> FuenteDatos
+ControlRecepcion --> ServicioIntegracion
+ServicioTrazabilidad --> FuenteDatos
+ServicioTrazabilidad o-- "5" OperacionTrazabilidad
+ServicioTrazabilidad --> ServicioIntegracion
+ServicioIntegracion --> ConectorSnt
+ServicioIntegracion --> EventoDAO
+@enduml

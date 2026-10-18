@@ -1,0 +1,25 @@
+@startuml
+title Diagrama de despliegue de TrazaPM
+skinparam shadowing false
+
+actor "Usuario autorizado" as Usuario
+
+node "Puesto de trabajo\nWindows" as Puesto {
+  artifact "TrazaPM Desktop" as App
+  component "Interfaz JavaFX" as UI
+  component "Dominio y aplicación Java" as Dominio
+  component "Persistencia JDBC" as JDBC
+  component "Adaptador SOAP simulado" as Adaptador
+  App -- UI
+  UI -- Dominio
+  Dominio -- JDBC
+  Dominio -- Adaptador
+}
+
+database "Servidor MySQL 8\nBase trazapm" as MySQL
+cloud "SNT-PM simulado" as SNT
+
+Usuario --> UI : interacción local
+JDBC --> MySQL : TCP/IP 3306\nMySQL Connector/J
+Adaptador --> SNT : HTTPS/TLS 443\nmensajes SOAP/XML simulados
+@enduml

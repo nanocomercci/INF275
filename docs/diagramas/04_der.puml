@@ -1,0 +1,133 @@
+@startuml
+title Diagrama entidad-relación de TrazaPM
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+
+entity rol {
+  * id_rol : BIGINT <<PK>>
+  --
+  nombre : VARCHAR(40) <<UQ>>
+}
+entity usuario {
+  * id_usuario : BIGINT <<PK>>
+  --
+  id_rol : BIGINT <<FK>>
+  nombre_usuario : VARCHAR(60) <<UQ>>
+  hash_clave : VARCHAR(255)
+  nombre_completo : VARCHAR(120)
+  activo : BOOLEAN
+}
+entity tipo_producto {
+  * id_tipo_producto : BIGINT <<PK>>
+  --
+  nombre : VARCHAR(80) <<UQ>>
+}
+entity producto {
+  * id_producto : BIGINT <<PK>>
+  --
+  id_tipo_producto : BIGINT <<FK>>
+  gtin : VARCHAR(14) <<UQ>>
+  marca : VARCHAR(80)
+  modelo : VARCHAR(80)
+  certificado_anmat : VARCHAR(40)
+  camaras : TINYINT <<marcapasos>>
+  diametro_mm : DECIMAL(4,2) <<stent>>
+  liberador_farmaco : BOOLEAN <<stent>>
+  material : VARCHAR(60) <<prótesis>>
+}
+entity ubicacion {
+  * id_ubicacion : BIGINT <<PK>>
+  --
+  nombre : VARCHAR(80) <<UQ>>
+  sector : VARCHAR(80)
+  activa : BOOLEAN
+}
+entity agente {
+  * id_agente : BIGINT <<PK>>
+  --
+  razon_social : VARCHAR(120)
+  cuit : VARCHAR(11) <<UQ>>
+  gln_cufe : VARCHAR(30) <<UQ>>
+  tipo_agente : VARCHAR(40)
+}
+entity profesional {
+  * id_profesional : BIGINT <<PK>>
+  --
+  nombre : VARCHAR(120)
+  matricula : VARCHAR(30) <<UQ>>
+  cuit : VARCHAR(11) <<UQ>>
+  habilitado : BOOLEAN
+}
+entity unidad_producto {
+  * id_unidad : BIGINT <<PK>>
+  --
+  id_producto : BIGINT <<FK>>
+  id_ubicacion_actual : BIGINT <<FK>>
+  numero_serie : VARCHAR(80)
+  lote : VARCHAR(60)
+  vencimiento : DATE
+  estado_actual : VARCHAR(30)
+  fecha_alta : DATETIME
+  UQ (id_producto, numero_serie)
+}
+entity tipo_evento {
+  * id_tipo_evento : BIGINT <<PK>>
+  --
+  codigo : VARCHAR(30) <<UQ>>
+  nombre : VARCHAR(80)
+  requiere_destino : BOOLEAN
+}
+entity evento {
+  * id_evento : BIGINT <<PK>>
+  --
+  id_unidad : BIGINT <<FK>>
+  id_tipo_evento : BIGINT <<FK>>
+  id_usuario : BIGINT <<FK>>
+  id_ubicacion_origen : BIGINT <<FK>>
+  id_ubicacion_destino : BIGINT <<FK>>
+  id_agente_origen : BIGINT <<FK>>
+  id_agente_destino : BIGINT <<FK>>
+  id_profesional : BIGINT <<FK>>
+  fecha_hora : DATETIME
+  documento : VARCHAR(80)
+  motivo : VARCHAR(255)
+  estado_envio : VARCHAR(20)
+}
+entity transaccion_externa {
+  * id_transaccion : BIGINT <<PK>>
+  --
+  id_evento : BIGINT <<FK>>
+  codigo_externo : VARCHAR(80)
+  estado : VARCHAR(20)
+  respuesta : VARCHAR(500)
+  fecha_intento : DATETIME
+  numero_intento : INT
+}
+entity auditoria {
+  * id_auditoria : BIGINT <<PK>>
+  --
+  id_usuario : BIGINT <<FK>>
+  fecha_hora : DATETIME
+  accion : VARCHAR(80)
+  entidad : VARCHAR(80)
+  entidad_id : BIGINT
+  resultado : VARCHAR(30)
+  detalle : VARCHAR(500)
+}
+
+rol ||--o{ usuario
+tipo_producto ||--o{ producto
+producto ||--o{ unidad_producto
+ubicacion ||--o{ unidad_producto
+unidad_producto ||--o{ evento
+tipo_evento ||--o{ evento
+usuario ||--o{ evento
+ubicacion |o--o{ evento : origen
+ubicacion |o--o{ evento : destino
+agente |o--o{ evento : origen
+agente |o--o{ evento : destino
+profesional |o--o{ evento
+evento ||--o{ transaccion_externa
+usuario ||--o{ auditoria
+@enduml
