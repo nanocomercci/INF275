@@ -60,7 +60,8 @@ public class PantallaIntegracion extends PantallaBase {
         tabla.getColumns().add(PantallaTrazabilidad.columna("Intentos", (Evento ev) -> String.valueOf(ev.getIntentosEnvio()), 70));
         tabla.getColumns().add(PantallaTrazabilidad.columna("Último resultado", (Evento ev) ->
                 ev.getRespuestaExterna() == null ? "Pendiente de primer envío" : ev.getRespuestaExterna(), 300));
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        // La última columna absorbe el espacio libre y conserva legibles GTIN, serie y respuesta.
+        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setPrefHeight(220);
         tabla.setPlaceholder(new Label("No hay eventos pendientes"));
 
