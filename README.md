@@ -36,6 +36,10 @@ datos son sintéticos.
 Si MySQL no está disponible, la aplicación avisa y **continúa en modo demostración** con los mismos datos
 sintéticos en memoria. Para forzar ese modo: `mvn javafx:run -Djavafx.args="--memoria"`.
 
+Si aparece `Access denied for user 'trazapm'@'localhost'`, volver a ejecutar
+`sql/06_usuario_aplicacion.sql` desde una conexión administrativa de MySQL Workbench. El script crea el usuario
+si falta y también restablece la contraseña de desarrollo cuando ya existía con otra configuración.
+
 ## Usuarios de prueba (selector "Usuario" de la barra de herramientas)
 
 | Usuario | Rol | Puede |
