@@ -3,6 +3,8 @@
 Prototipo de escritorio desarrollado para el **Seminario de Práctica Informática (INF275 – Universidad Siglo 21)**.
 Autor: **Luciano Felipe Comercci**. Entrega incremental: TP3 (desarrollo en Java).
 
+Repositorio del proyecto: <https://github.com/nanocomercci/SeminarioPracticaInformatica>
+
 TrazaPM registra la recepción, los movimientos internos, la cuarentena, la devolución y la implantación de
 unidades identificadas por **GTIN + número de serie**, conserva el historial auditable de cada unidad y mantiene
 una cola local de eventos para informar al SNT-PM (ANMAT). **La integración con el SNT-PM es simulada** y todos los
