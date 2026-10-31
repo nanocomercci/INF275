@@ -37,7 +37,7 @@ public class ExportadorCsv implements Exportador {
         // try-with-resources: el archivo se cierra aunque ocurra un error al escribir.
         try (BufferedWriter w = abrir(destino)) {
             linea(w, "TrazaPM - Historial de trazabilidad", "Generado " + FECHA_HORA.format(LocalDateTime.now()));
-            linea(w, "GTIN", u.getProducto().getGtin());
+            linea(w, "GTIN", comoTexto(u.getProducto().getGtin()));
             linea(w, "Serie", u.getNumeroSerie());
             linea(w, "Producto", u.getProducto().getDescripcion());
             linea(w, "Estado actual", u.getEstado().getEtiqueta());
@@ -79,7 +79,7 @@ public class ExportadorCsv implements Exportador {
             w.newLine();
             linea(w, "GTIN", "Familia", "Marca y modelo", "Serie", "Lote", "Vencimiento", "Estado", "Ubicación");
             for (UnidadProducto u : unidades) {
-                linea(w, u.getProducto().getGtin(), u.getProducto().getTipoProducto(),
+                linea(w, comoTexto(u.getProducto().getGtin()), u.getProducto().getTipoProducto(),
                         u.getProducto().getMarca() + " " + u.getProducto().getModelo(), u.getNumeroSerie(),
                         u.getLote(), u.getVencimiento() == null ? "" : FECHA.format(u.getVencimiento()),
                         u.getEstado().getEtiqueta(),
@@ -106,6 +106,15 @@ public class ExportadorCsv implements Exportador {
             w.write(escapar(campos[i]));
         }
         w.newLine();
+    }
+
+    /**
+     * Fuerza a Excel a tratar el valor como texto (fórmula ="..."). Sin esto,
+     * un GTIN como 07791234000029 se convierte en número, pierde el cero inicial
+     * y se muestra en notación científica.
+     */
+    static String comoTexto(String valor) {
+        return valor == null ? "" : "=\"" + valor + "\"";
     }
 
     /** Encierra entre comillas los valores que contienen el separador, comillas o saltos de línea. */
