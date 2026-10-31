@@ -4,6 +4,8 @@ import com.trazapm.control.ConectorSntSimulado;
 import com.trazapm.control.ControlRecepcion;
 import com.trazapm.control.ServicioIntegracion;
 import com.trazapm.control.ServicioTrazabilidad;
+import com.trazapm.control.exportacion.Exportador;
+import com.trazapm.control.exportacion.ExportadorCsv;
 import com.trazapm.dao.FuenteDatos;
 import com.trazapm.dao.jdbc.ConexionMySQL;
 import com.trazapm.dao.jdbc.FuenteDatosMySQL;
@@ -24,6 +26,7 @@ public class Contexto {
     private final ServicioIntegracion integracion;
     private final ControlRecepcion controlRecepcion;
     private final ServicioTrazabilidad servicioTrazabilidad;
+    private final Exportador exportador = new ExportadorCsv();
     private Usuario usuarioActual;
 
     public Contexto(boolean forzarMemoria) {
@@ -70,6 +73,10 @@ public class Contexto {
 
     public ServicioTrazabilidad getServicioTrazabilidad() {
         return servicioTrazabilidad;
+    }
+
+    public Exportador getExportador() {
+        return exportador;
     }
 
     public Usuario getUsuarioActual() {

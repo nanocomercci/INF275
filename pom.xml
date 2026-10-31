@@ -6,9 +6,9 @@
 
     <groupId>com.trazapm</groupId>
     <artifactId>trazapm</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
     <name>TrazaPM</name>
-    <description>Prototipo de gestión y trazabilidad de productos médicos implantables (Seminario de Práctica Informática - TP3)</description>
+    <description>Prototipo de gestión y trazabilidad de productos médicos implantables (Seminario de Práctica Informática - TP4, proyecto integrador)</description>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>

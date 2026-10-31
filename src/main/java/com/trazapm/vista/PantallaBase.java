@@ -8,6 +8,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Optional;
+import javafx.stage.FileChooser;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -110,6 +114,20 @@ public abstract class PantallaBase extends ScrollPane {
         destino.getStyleClass().removeAll("mensaje-info", "mensaje-ok", "mensaje-error");
         destino.getStyleClass().add(estilo);
         destino.setText(texto);
+    }
+
+    /**
+     * Abre el diálogo "Guardar como" del sistema operativo con un nombre
+     * sugerido. Devuelve vacío si el usuario cancela.
+     */
+    protected Optional<Path> elegirArchivoDestino(String nombreSugerido, String extension) {
+        FileChooser dialogo = new FileChooser();
+        dialogo.setTitle("Exportar reporte");
+        dialogo.setInitialFileName(nombreSugerido + "." + extension);
+        dialogo.getExtensionFilters().add(new FileChooser.ExtensionFilter(
+                extension.toUpperCase() + " (*." + extension + ")", "*." + extension));
+        File elegido = dialogo.showSaveDialog(getScene() == null ? null : getScene().getWindow());
+        return elegido == null ? Optional.empty() : Optional.of(elegido.toPath());
     }
 
     /** Traducción única de excepciones a mensajes de pantalla. */

@@ -103,7 +103,7 @@ public class VentanaPrincipal {
         MenuItem acerca = new MenuItem("Acerca de TrazaPM");
         acerca.setOnAction(e -> {
             Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setHeaderText("TrazaPM - prototipo TP3");
+            a.setHeaderText("TrazaPM - prototipo TP4 - proyecto integrador");
             a.setContentText("Seminario de Práctica Informática (INF275)\nLuciano Felipe Comercci\n"
                     + "Datos sintéticos. Integración con SNT-PM simulada.");
             a.showAndWait();

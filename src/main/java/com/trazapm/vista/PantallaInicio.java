@@ -23,7 +23,7 @@ public class PantallaInicio extends PantallaBase {
 
     public PantallaInicio(Contexto contexto, Consumer<Integer> irAPestana) {
         super(contexto, "TrazaPM · Clínica Modelo del Centro",
-                "Sistema de gestión y trazabilidad de productos médicos implantables (prototipo TP3).");
+                "Sistema de gestión y trazabilidad de productos médicos implantables (prototipo TP4 - proyecto integrador).");
         lblBienvenida.setStyle("-fx-font-size: 14px;");
         String[] accesos = {"Registrar recepción", "Registrar movimiento", "Consultar trazabilidad",
             "Stock y vencimientos", "Cola de integración"};

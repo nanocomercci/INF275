@@ -127,6 +127,11 @@ public class ServicioTrazabilidad {
         return pos >= 0 ? Optional.of(ordenadas.get(pos)) : Optional.empty();
     }
 
+    /** Tablero de stock por familia y estado (matriz int[][]), CU-08. */
+    public ReporteStock generarReporteStock() {
+        return new ReporteStock(listarUnidades());
+    }
+
     /** Conteo de unidades por estado para el panel de inicio. */
     public Map<EstadoUnidad, Integer> contarPorEstado() {
         Map<EstadoUnidad, Integer> conteo = new EnumMap<>(EstadoUnidad.class);

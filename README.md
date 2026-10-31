@@ -1,7 +1,7 @@
 # TrazaPM — Gestión y trazabilidad de productos médicos implantables
 
 Prototipo de escritorio desarrollado para el **Seminario de Práctica Informática (INF275 – Universidad Siglo 21)**.
-Autor: **Luciano Felipe Comercci**. Entrega incremental: TP3 (desarrollo en Java).
+Autor: **Luciano Felipe Comercci**. Entrega incremental: **TP4 — proyecto integrador** (versión 0.4.0). La versión del TP3 queda en la etiqueta `tp3`.
 
 Repositorio del proyecto: <https://github.com/nanocomercci/INF275>
 
@@ -26,6 +26,7 @@ datos son sintéticos.
    sql/01_esquema.sql            -- crea la base trazapm y sus tablas
    sql/02_datos_prueba.sql       -- datos sintéticos (usuarios, productos, ubicaciones)
    sql/06_usuario_aplicacion.sql -- usuario trazapm/trazapm que usa la aplicación
+   sql/07_datos_tp4.sql          -- (TP4) 9 unidades más en distintos estados para el tablero y las alertas
    ```
 2. **Configuración** (opcional): los datos de conexión están en `src/main/resources/trazapm.properties`.
    Para usar otro servidor, copiar ese archivo junto al programa y editar `db.url`, `db.usuario` y `db.clave`.
@@ -61,7 +62,9 @@ src/main/java/com/trazapm
 ├── modelo/                      entidades (solo estado): EntidadBase, Persona, Producto y subclases,
 │                                UnidadProducto, Evento, enums
 ├── control/                     reglas de negocio: ControlRecepcion (CU-01), ServicioTrazabilidad (CU-02..06),
-│   │                            ServicioIntegracion (CU-07, cola FIFO), ConectorSnt (+ simulado)
+│   │                            ServicioIntegracion (CU-07, cola FIFO), ConectorSnt (+ simulado),
+│   │                            ReporteStock (TP4: matriz int[][] familia × estado)
+│   ├── exportacion/             (TP4) Exportador (interfaz, patrón Strategy) y ExportadorCsv
 │   └── operaciones/             OperacionTrazabilidad (abstracta) y sus 5 subclases polimórficas
 ├── dao/                         interfaces DAO + FuenteDatos (transacciones)
 │   ├── jdbc/                    implementación MySQL con PreparedStatement
@@ -88,3 +91,15 @@ docs/capturas/                   evidencias de ejecución del prototipo
 | Estructuras de datos | `ArrayList`, `HashMap`, `EnumMap`, `EnumSet`, `Queue/ArrayDeque` |
 | Ordenación y búsqueda | `Algoritmos.ordenarPorInsercion` y `Algoritmos.busquedaBinaria` |
 | Persistencia MySQL | `dao/jdbc/FuenteDatosMySQL` con transacciones (commit/rollback) |
+| **Patrón de diseño (TP4)** | arquitectura **MVC** (`vista` / `control` / `modelo`) + **DAO** (`dao`, `dao/jdbc`); de apoyo: Template Method (`OperacionTrazabilidad`), Strategy (`Exportador`), Adapter (`ConectorSnt`), Factory (`Contexto`). Ver `docs/diagramas/06_patrones.puml` |
+| **Arreglos y ArrayList (TP4)** | `ReporteStock`: `String[] FAMILIAS`, `EstadoUnidad[] ESTADOS` y matriz `int[][]` de tamaño fijo, alimentada desde el `ArrayList<UnidadProducto>` que devuelve el DAO |
+| **Archivos (TP4)** | exportación CSV del historial (CU-05) y del stock (CU-08) con `Files.newBufferedWriter` y try-with-resources; `IOException` → `ExportacionException` |
+
+## Novedades del TP4
+
+- **Tablero por familia y estado** en *Stock y vencimientos*: matriz `int[][]` con totales por fila y columna.
+- **Exportar CSV** en *Consultar trazabilidad* y en *Stock y vencimientos* (separador `;`, UTF-8 con BOM: abre directo en Excel).
+- `ExportacionException`: si el archivo está abierto en Excel o la carpeta no permite escribir, se informa en pantalla.
+- Script `sql/07_datos_tp4.sql` con datos sintéticos adicionales (vencimientos relativos a la fecha actual).
+- Diagrama de patrones `docs/diagramas/06_patrones.puml` y capturas `docs/capturas/17` a `21`.
+

@@ -1,7 +1,12 @@
 package com.trazapm.vista;
 
 import com.trazapm.config.Contexto;
+import com.trazapm.control.ReporteStock;
 import com.trazapm.control.ServicioTrazabilidad;
+import com.trazapm.control.exportacion.Exportador;
+import com.trazapm.excepciones.TrazabilidadException;
+import java.nio.file.Path;
+import javafx.scene.layout.GridPane;
 import com.trazapm.modelo.EstadoUnidad;
 import com.trazapm.modelo.UnidadProducto;
 import com.trazapm.util.Algoritmos;
@@ -34,6 +39,7 @@ public class PantallaStock extends PantallaBase {
     private final TextField txtSerie = new TextField();
     private final TableView<UnidadProducto> tabla = new TableView<>();
     private final Label lblMensaje = new Label();
+    private final GridPane tablero = new GridPane();
     private List<UnidadProducto> vista = new ArrayList<>();
 
     public PantallaStock(Contexto contexto) {
@@ -70,7 +76,11 @@ public class PantallaStock extends PantallaBase {
 
         HBox filtros1 = new HBox(10, new Label("Estado:"), cbEstado, new Label("Días:"), txtDias, btnVencen, btnAlertas);
         filtros1.setAlignment(Pos.CENTER_LEFT);
-        HBox filtros2 = new HBox(10, btnOrdenar, new Label("   Búsqueda binaria por serie:"), txtSerie, btnBuscar);
+        Button btnExportar = new Button("Exportar CSV");
+        btnExportar.setId("btnExportarStock");
+        btnExportar.getStyleClass().add("boton-secundario");
+        btnExportar.setOnAction(e -> exportar());
+        HBox filtros2 = new HBox(10, btnOrdenar, new Label("   Búsqueda binaria por serie:"), txtSerie, btnBuscar, btnExportar);
         filtros2.setAlignment(Pos.CENTER_LEFT);
 
         LocalDate hoy = LocalDate.now();
@@ -105,7 +115,12 @@ public class PantallaStock extends PantallaBase {
 
         lblMensaje.setMaxWidth(Double.MAX_VALUE);
         lblMensaje.setWrapText(true);
-        contenido.getChildren().addAll(seccion("Filtros y herramientas", new VBox(10, filtros1, filtros2)),
+        tablero.setId("tableroStock");
+        tablero.getStyleClass().add("tablero");
+        tablero.setHgap(18);
+        tablero.setVgap(6);
+        contenido.getChildren().addAll(seccion("Tablero por familia y estado", tablero),
+                seccion("Filtros y herramientas", new VBox(10, filtros1, filtros2)),
                 seccion("Unidades", tabla), lblMensaje);
     }
 
@@ -181,8 +196,57 @@ public class PantallaStock extends PantallaBase {
         }
     }
 
+    /**
+     * Dibuja la matriz int[][] del reporte: una fila por familia, una columna
+     * por estado, más los totales calculados recorriendo filas y columnas.
+     */
+    private void dibujarTablero(ReporteStock r) {
+        tablero.getChildren().clear();
+        tablero.add(encabezado("Familia"), 0, 0);
+        for (int j = 0; j < ReporteStock.ESTADOS.length; j++) {
+            tablero.add(encabezado(ReporteStock.ESTADOS[j].getEtiqueta()), j + 1, 0);
+        }
+        int colTotal = ReporteStock.ESTADOS.length + 1;
+        tablero.add(encabezado("Total"), colTotal, 0);
+        for (int i = 0; i < ReporteStock.FAMILIAS.length; i++) {
+            tablero.add(new Label(ReporteStock.FAMILIAS[i]), 0, i + 1);
+            for (int j = 0; j < ReporteStock.ESTADOS.length; j++) {
+                tablero.add(new Label(String.valueOf(r.cantidad(i, j))), j + 1, i + 1);
+            }
+            tablero.add(encabezado(String.valueOf(r.totalFamilia(i))), colTotal, i + 1);
+        }
+        int filaTotal = ReporteStock.FAMILIAS.length + 1;
+        tablero.add(encabezado("Total"), 0, filaTotal);
+        for (int j = 0; j < ReporteStock.ESTADOS.length; j++) {
+            tablero.add(encabezado(String.valueOf(r.totalEstado(j))), j + 1, filaTotal);
+        }
+        tablero.add(encabezado(r.total() + " (" + r.enStock() + " en stock)"), colTotal, filaTotal);
+    }
+
+    private static Label encabezado(String texto) {
+        Label l = new Label(texto);
+        l.setStyle("-fx-font-weight: bold;");
+        return l;
+    }
+
+    /** Exporta el listado visible y el tablero a CSV (CU-08, paso 3). */
+    private void exportar() {
+        Exportador exportador = contexto.getExportador();
+        Optional<Path> destino = elegirArchivoDestino("stock_" + LocalDate.now(), exportador.getExtension());
+        if (destino.isEmpty()) {
+            return;
+        }
+        try {
+            exportador.exportarStock(vista, contexto.getServicioTrazabilidad().generarReporteStock(), destino.get());
+            mostrar(lblMensaje, vista.size() + " unidades exportadas en " + destino.get(), "mensaje-ok");
+        } catch (TrazabilidadException e) {
+            mostrarError(lblMensaje, e);
+        }
+    }
+
     @Override
     public void refrescar() {
+        dibujarTablero(contexto.getServicioTrazabilidad().generarReporteStock());
         List<UnidadProducto> unidades = filtrarPorEstado();
         cargar(unidades, unidades.size() + " unidades. Las filas amarillas están dentro del umbral de alerta de vencimiento.");
     }

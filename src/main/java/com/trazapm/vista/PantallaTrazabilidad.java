@@ -2,9 +2,11 @@ package com.trazapm.vista;
 
 import com.trazapm.config.Contexto;
 import com.trazapm.control.Historial;
+import com.trazapm.control.exportacion.Exportador;
+import java.nio.file.Path;
+import java.util.Optional;
 import com.trazapm.excepciones.TrazabilidadException;
 import com.trazapm.modelo.Evento;
-import com.trazapm.modelo.TipoEvento;
 import com.trazapm.modelo.UnidadProducto;
 import java.util.function.Function;
 import javafx.beans.property.SimpleStringProperty;
@@ -31,6 +33,8 @@ public class PantallaTrazabilidad extends PantallaBase {
     private final Label lblEstado = new Label();
     private final TableView<Evento> tabla = new TableView<>();
     private final Label lblMensaje = new Label("Ingrese GTIN y número de serie y presione Buscar.");
+    private final Button btnExportar = new Button("Exportar CSV");
+    private Historial ultimoHistorial;
 
     public PantallaTrazabilidad(Contexto contexto) {
         super(contexto, "Consultar trazabilidad", "CU-05 · Historial cronológico y auditable de una unidad.");
@@ -48,7 +52,11 @@ public class PantallaTrazabilidad extends PantallaBase {
         GridPane criterios = grilla(3);
         campo(criterios, "GTIN", txtGtin, 0, 0);
         campo(criterios, "Número de serie", txtSerie, 1, 0);
-        HBox botones = new HBox(12, btnBuscar, btnLimpiar);
+        btnExportar.setId("btnExportarTraz");
+        btnExportar.getStyleClass().add("boton-secundario");
+        btnExportar.setDisable(true);
+        btnExportar.setOnAction(e -> exportar());
+        HBox botones = new HBox(12, btnBuscar, btnLimpiar, btnExportar);
         botones.setAlignment(Pos.BOTTOM_LEFT);
         criterios.add(botones, 2, 0);
 
@@ -62,8 +70,8 @@ public class PantallaTrazabilidad extends PantallaBase {
 
         tabla.getColumns().add(columna("Fecha y hora", ev -> formatear(ev.getFechaHora()), 138));
         tabla.getColumns().add(columna("Evento", ev -> ev.getTipo().getNombre(), 175));
-        tabla.getColumns().add(columna("Origen", PantallaTrazabilidad::origen, 240));
-        tabla.getColumns().add(columna("Destino", PantallaTrazabilidad::destino, 250));
+        tabla.getColumns().add(columna("Origen", Historial::origenDe, 240));
+        tabla.getColumns().add(columna("Destino", Historial::destinoDe, 250));
         tabla.getColumns().add(columna("Documento", Evento::getDocumento, 110));
         tabla.getColumns().add(columna("Envío", ev -> ev.getEstadoEnvio().name(), 95));
         tabla.getColumns().add(columna("Usuario", ev -> ev.getUsuario().getNombreUsuario(), 125));
@@ -84,24 +92,6 @@ public class PantallaTrazabilidad extends PantallaBase {
         return c;
     }
 
-    /** En la recepción el origen es el proveedor; en el resto, la ubicación previa. */
-    private static String origen(Evento ev) {
-        if (ev.getTipo() == TipoEvento.RECEPCION && ev.getAgente() != null) {
-            return ev.getAgente().getRazonSocial();
-        }
-        return ev.getUbicacionOrigen() == null ? "-" : ev.getUbicacionOrigen().getNombre();
-    }
-
-    private static String destino(Evento ev) {
-        if (ev.getTipo() == TipoEvento.IMPLANTACION) {
-            return "Paciente · " + (ev.getProfesional() == null ? "" : ev.getProfesional().getNombreCompleto());
-        }
-        if (ev.getTipo() == TipoEvento.DEVOLUCION && ev.getAgente() != null) {
-            return ev.getAgente().getRazonSocial();
-        }
-        return ev.getUbicacionDestino() == null ? "-" : ev.getUbicacionDestino().getNombre();
-    }
-
     private void buscar() {
         try {
             Historial h = contexto.getServicioTrazabilidad().consultarHistorial(txtGtin.getText(), txtSerie.getText());
@@ -114,14 +104,40 @@ public class PantallaTrazabilidad extends PantallaBase {
             lblEstado.getStyleClass().addAll("estado", "estado-" + u.getEstado().name());
             lblEstado.setText(u.getEstado().name());
             tabla.getItems().setAll(h.getEventos());
+            ultimoHistorial = h;
+            btnExportar.setDisable(false);
             mostrar(lblMensaje, h.getEventos().size() + " eventos recuperados.", "mensaje-info");
         } catch (TrazabilidadException | RuntimeException e) {
             tabla.getItems().clear();
+            ultimoHistorial = null;
+            btnExportar.setDisable(true);
+            mostrarError(lblMensaje, e);
+        }
+    }
+
+    /** Exporta el historial consultado a un archivo (CU-05, paso 3). */
+    private void exportar() {
+        if (ultimoHistorial == null) {
+            return;
+        }
+        Exportador exportador = contexto.getExportador();
+        UnidadProducto u = ultimoHistorial.getUnidad();
+        Optional<Path> destino = elegirArchivoDestino("historial_" + u.getProducto().getGtin() + "_"
+                + u.getNumeroSerie(), exportador.getExtension());
+        if (destino.isEmpty()) {
+            return;
+        }
+        try {
+            exportador.exportarHistorial(ultimoHistorial, destino.get());
+            mostrar(lblMensaje, "Historial exportado en " + destino.get(), "mensaje-ok");
+        } catch (TrazabilidadException e) {
             mostrarError(lblMensaje, e);
         }
     }
 
     private void limpiar() {
+        ultimoHistorial = null;
+        btnExportar.setDisable(true);
         txtGtin.clear();
         txtSerie.clear();
         tabla.getItems().clear();
